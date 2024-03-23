@@ -1,0 +1,200 @@
+openapi: '3.0.2'
+info:
+  title: API Title
+  version: '1.0'
+servers:
+  - url: https://localhost:8000/
+paths:
+  /signup:
+    post:
+      summary: Sign up new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/signDto'
+      responses:
+        201:
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/user"
+        400:
+          description: Validation not passed
+  /signin:
+    post:
+      summary: Sign in user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/signDto'
+      responses:
+        201:
+          description: Successful registration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/token'
+        400:
+          description: Validation not passed
+  /ads:
+    post:
+      summary: Create new ad
+      security:
+        - bearerAuth: ['Bearer {token}']
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/adDto'
+      responses:
+        201:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ad'
+    get:
+      summary: Get ads  
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          description: simple pagination
+          in: query
+          schema: 
+            type: number
+            minimum: 1
+        - name: sort_by
+          description: Criteria of sorting
+          in: query
+          schema: 
+            type: string
+            enum: [date, price]
+        - name: order_by
+          description: Direction of sorting
+          in: query
+          schema:  
+            type: string
+            enum: [asc, desc]
+        - name: min_price
+          in: query
+          schema: 
+            type: number
+            minimum: 1
+            maximum: 1000000
+        - name: max_price
+          in: query
+          schema: 
+            type: number
+            minimum: 1
+            maximum: 1000000
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/adsFeed"
+        400:
+          description: Filters error
+
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth: 
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+  schemas:
+    token:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Unique token for user authorization. Lasts for one day.
+    signDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 8
+          maxLength: 16
+          description: User's name
+        password:
+          type: string
+          minLength: 8
+          maxLength: 16
+          description: User's password
+    adDto:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 2
+          maxLength: 255
+        content:
+          type: string
+          minLength: 2
+          maxLength: 1000
+        image-url:
+          type: string
+          format: url
+        price: 
+          type: number
+          minimum: 1
+          maximum: 1000000
+    user:
+      type: object
+      properties:
+        id:
+          type: number
+          description: User's id
+        name:  
+          type: string
+          description: User's name
+    ad: 
+      type: object
+      properties:
+        id: 
+          type: number
+        title:
+          type: string
+          minLength: 2
+          maxLength: 255
+        content:
+          type: string
+          minLength: 2
+          maxLength: 1000
+        image-url:
+          type: string
+          format: url
+        price: 
+          type: number
+          minimum: 1
+          maximum: 1000000
+    adsFeed: 
+      type: array
+      items: 
+        type: object
+        properties:
+          title: 
+            type: string
+          content: 
+            type: string
+          image-url: 
+            type: string
+            format: url
+          price: 
+            type: number
+          author: 
+            type: string
+          is-yours:
+            type: boolean
+
