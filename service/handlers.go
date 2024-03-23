@@ -6,9 +6,11 @@ import (
 	"log"
 	"net/http"
 	"vk-feed/types"
+
+	"github.com/go-playground/validator/v10"
 )
 
-func newSignupHandler(d deps) func(w http.ResponseWriter, r *http.Request) {
+func newSignupHandler(d dependencies, valid *validator.Validate) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.ContentLength == 0 {
 			w.WriteHeader(http.StatusBadRequest)
@@ -26,7 +28,7 @@ func newSignupHandler(d deps) func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		if err := d.validator.Struct(dto); err != nil {
+		if err := valid.Struct(dto); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
