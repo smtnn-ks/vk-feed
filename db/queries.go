@@ -11,6 +11,7 @@ type PgxConnection struct {
 }
 
 func (conn PgxConnection) CreateUser(name, password string) (id int, err error) {
-	err = conn.Client.QueryRow(context.Background(), "INSERT INTO usrs (name, pass) VALUES ($1, $2) RETURNING id", name, password).Scan(&id)
+	query := "INSERT INTO usrs (name, pass) VALUES ($1, $2) RETURNING id"
+	err = conn.Client.QueryRow(context.Background(), query, name, password).Scan(&id)
 	return
 }
