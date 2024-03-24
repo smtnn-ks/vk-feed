@@ -20,6 +20,11 @@ func main() {
 		port = "6969"
 	}
 
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET is not specified")
+	}
+
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
 		log.Fatal("DB_URL is not specified")
@@ -31,11 +36,7 @@ func main() {
 	fmt.Println("database connected")
 	defer dbConn.Client.Close()
 
-	// http.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-	// 	w.Write([]byte("Hello, World!"))
-	// })
-
-	service.Register(dbConn)
+	service.Register(dbConn, []byte(jwtSecret))
 
 	fmt.Printf("server is running on port %s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

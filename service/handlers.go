@@ -48,3 +48,46 @@ func newSignupHandler(d dependencies, valid *validator.Validate) func(w http.Res
 		w.Write(payload)
 	}
 }
+
+func newSigninHandler(d dependencies, valid *validator.Validate) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.ContentLength == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		content, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		var dto types.SignDto
+		if err := json.Unmarshal(content, &dto); err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if err := valid.Struct(dto); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		token, err := d.signIn(dto.Name, dto.Password)
+		if err != nil {
+			if err == ErrWrongCreds {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		payload, err := json.Marshal(token)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+		w.Write(payload)
+	}
+}

@@ -8,16 +8,18 @@ import (
 )
 
 type deps struct {
-	client db.DBConnection
+	client    db.DBConnection
+	jwtSecret []byte
 }
 
-func Register(conn db.DBConnection) {
+func Register(conn db.DBConnection, jwtSecret []byte) {
 	d := deps{
-		client: conn,
+		client:    conn,
+		jwtSecret: jwtSecret,
 	}
 	valid := validator.New()
 	http.HandleFunc("POST /signup", newSignupHandler(d, valid))
-	// http.HandleFunc("POST /signin", func(w http.ResponseWriter, r *http.Request) {})
+	http.HandleFunc("POST /signin", newSigninHandler(d, valid))
 	// http.HandleFunc("POST /ads", func(w http.ResponseWriter, r *http.Request) {})
 	// http.HandleFunc("GET /ads", func(w http.ResponseWriter, r *http.Request) {})
 }
