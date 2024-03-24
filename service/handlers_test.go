@@ -29,11 +29,11 @@ func (m mockDeps) signIn(name, password string) (types.Token, error) {
 var m mockDeps
 var valid *validator.Validate = validator.New()
 
-func newRequest(methon, path string, body any) *http.Request {
+func newRequest(method, path string, body any) *http.Request {
 	content, _ := json.Marshal(body)
 	var b bytes.Buffer
 	b.Write(content)
-	return httptest.NewRequest("POST", "/signup", &b)
+	return httptest.NewRequest(method, path, &b)
 }
 
 func TestNewSignupHandler(t *testing.T) {
