@@ -1,10 +1,12 @@
 package service
 
 import (
+	"context"
 	"crypto/sha512"
 	"database/sql"
 	"encoding/base64"
 	"testing"
+	imgC "vk-feed/image-checker"
 	"vk-feed/types"
 
 	"github.com/stretchr/testify/assert"
@@ -23,6 +25,24 @@ func (m mockDBConnection) GetUserByName(name string) (int, string, error) {
 		return 1, hashPassword, nil
 	} else {
 		return 0, "", sql.ErrNoRows
+	}
+}
+
+func (m mockDBConnection) CreateAd(dto types.AdDto, userId int) (id int, err error) {
+	if userId == 0 {
+		return 0, sql.ErrNoRows
+	} else {
+		return 1, nil
+	}
+}
+
+type mockIC struct{}
+
+func (m mockIC) Check(ctx context.Context, url string) error {
+	if url == "OK" {
+		return nil
+	} else {
+		return imgC.ErrBadImage
 	}
 }
 
@@ -47,4 +67,47 @@ func TestSignin(t *testing.T) {
 		_, err := d.signIn("mock_name", "wrong_password")
 		assert.Equal(t, ErrWrongCreds, err)
 	})
+}
+
+func TestCreateAd(t *testing.T) {
+	d := deps{client: mockDBConnection{}, ic: mockIC{}}
+	t.Run("OK", func(t *testing.T) {
+		dto := types.AdDto{
+			Title:    "mock_title",
+			Content:  "mock_content",
+			ImageUrl: "OK",
+			Price:    6969,
+		}
+		resAd := types.Ad{
+			Id:       1,
+			Title:    dto.Title,
+			Content:  dto.Content,
+			ImageUrl: dto.ImageUrl,
+			Price:    dto.Price,
+		}
+		ad, err := d.createAd(dto, 1)
+		assert.NoError(t, err)
+		assert.Equal(t, resAd, ad)
+	})
+	t.Run("Bad image", func(t *testing.T) {
+		dto := types.AdDto{
+			Title:    "mock_title",
+			Content:  "mock_content",
+			ImageUrl: "NOT OK",
+			Price:    6969,
+		}
+		_, err := d.createAd(dto, 1)
+		assert.Equal(t, imgC.ErrBadImage, err)
+	})
+	t.Run("Bad user ID", func(t *testing.T) {
+		dto := types.AdDto{
+			Title:    "mock_title",
+			Content:  "mock_content",
+			ImageUrl: "OK",
+			Price:    6969,
+		}
+		_, err := d.createAd(dto, 0)
+		assert.Equal(t, sql.ErrNoRows, err)
+	})
+	// TODO: 500 if body param's type is not correct
 }
