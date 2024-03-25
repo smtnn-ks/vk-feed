@@ -40,7 +40,7 @@ func authMiddleware(d deps, next func(w http.ResponseWriter, r *http.Request), i
 		}
 		token, err := jwt.Parse(authParts[1], func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
 			return []byte(d.jwtSecret), nil
 		}, jwt.WithExpirationRequired())
@@ -63,7 +63,7 @@ func authMiddleware(d deps, next func(w http.ResponseWriter, r *http.Request), i
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		userId := claims["sub"].(string)
+		userId := claims["sub"]
 		expiresAt := int64(claims["exp"].(float64))
 		if expiresAt < time.Now().UTC().Unix() {
 			if isOpt {
@@ -73,7 +73,7 @@ func authMiddleware(d deps, next func(w http.ResponseWriter, r *http.Request), i
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		r.Header.Add("userid", userId)
+		r.Header.Add("userid", fmt.Sprint(userId))
 		next(w, r)
 	}
 }

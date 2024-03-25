@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -33,11 +32,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("database connected")
+	log.Println("database connected")
 	defer dbConn.Client.Close()
 
 	service.Register(dbConn, []byte(jwtSecret))
 
-	fmt.Printf("server is running on port %s", port)
+	log.Printf("server is running on port %s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
