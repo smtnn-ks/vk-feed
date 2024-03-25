@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"crypto/sha512"
 	"database/sql"
 	"encoding/base64"
@@ -44,4 +45,24 @@ func (d deps) signIn(name, password string) (types.Token, error) {
 		return types.Token{}, err
 	}
 	return types.Token{Token: token}, nil
+}
+
+func (d deps) createAd(dto types.AdDto, userId int) (types.Ad, error) {
+	ctx, cancelCtx := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancelCtx()
+	if err := d.ic.Check(ctx, dto.ImageUrl); err != nil {
+		return types.Ad{}, err
+	}
+	id, err := d.client.CreateAd(dto, userId)
+	if err != nil {
+		return types.Ad{}, err
+	}
+	out := types.Ad{
+		Id:       id,
+		Title:    dto.Title,
+		Content:  dto.Content,
+		ImageUrl: dto.ImageUrl,
+		Price:    dto.Price,
+	}
+	return out, nil
 }
