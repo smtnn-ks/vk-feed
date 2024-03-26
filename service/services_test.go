@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"testing"
+	"time"
 	imgC "vk-feed/image-checker"
 	"vk-feed/types"
 
@@ -34,6 +35,21 @@ func (m mockDBConnection) CreateAd(dto types.AdDto, userId int) (id int, err err
 	} else {
 		return 1, nil
 	}
+}
+
+func (m mockDBConnection) GetAds(userId int, params types.GetAdParams) ([]types.AdFeed, error) {
+	return []types.AdFeed{
+		{
+			Id:        1,
+			Title:     "mock_title",
+			Content:   "mock_content",
+			ImageUrl:  "http://mocksite.com/image.jpg",
+			Price:     6969,
+			CreatedAt: time.Now(),
+			AuthorId:  1,
+			IsYours:   false,
+		},
+	}, nil
 }
 
 type mockIC struct{}
@@ -111,3 +127,5 @@ func TestCreateAd(t *testing.T) {
 	})
 	// TODO: 500 if body param's type is not correct
 }
+
+// getAds does not do much, no tests needed

@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 	imgC "vk-feed/image-checker"
 	"vk-feed/types"
 
@@ -43,6 +44,24 @@ func (m mockDeps) createAd(dto types.AdDto, userId int) (types.Ad, error) {
 			Price:    dto.Price,
 		}, nil
 	}
+}
+
+var outParams types.GetAdParams
+
+func (m mockDeps) getAds(userId int, params types.GetAdParams) ([]types.AdFeed, error) {
+	outParams = params
+	return []types.AdFeed{
+		{
+			Id:        1,
+			Title:     "mock_title",
+			Content:   "mock_content",
+			ImageUrl:  "http://mocksite.com/image.jpg",
+			Price:     6969,
+			CreatedAt: time.Now(),
+			AuthorId:  1,
+			IsYours:   false,
+		},
+	}, nil
 }
 
 var m mockDeps
@@ -333,4 +352,101 @@ func TestNewCreateAdHandler(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestNewGetAdsHandler(t *testing.T) {
+	t.Run("no params", func(t *testing.T) {
+		var m mockDeps
+		req := httptest.NewRequest("GET", "/ads", nil)
+		rr := httptest.NewRecorder()
+		newGetAdsHanlder(m, valid)(rr, req)
+		assert.Equal(t, 200, rr.Code)
+		defaultParams := types.GetAdParams{
+			Page:     0,
+			MinPrice: 1,
+			MaxPrice: 1e6,
+			SortBy:   types.SORT_BY_DATE,
+			OrderBy:  types.ORDER_BY_ASC,
+		}
+		assert.Equal(t, defaultParams, outParams)
+	})
+	type mockParams struct {
+		page     string
+		minPrice string
+		maxPrice string
+		sortBy   string
+		orderBy  string
+	}
+	cases := []struct {
+		name string
+		in   mockParams
+		out  types.GetAdParams
+	}{
+		{
+			name: "correct params",
+			in: mockParams{
+				page:     "1",
+				minPrice: "100",
+				maxPrice: "10000",
+				sortBy:   "price",
+				orderBy:  "desc",
+			},
+			out: types.GetAdParams{
+				Page:     1,
+				MinPrice: 100,
+				MaxPrice: 10000,
+				SortBy:   types.SORT_BY_PRICE,
+				OrderBy:  types.ORDER_BY_DESC,
+			},
+		},
+		{
+			name: "bad params",
+			in: mockParams{
+				page:     "-1",
+				minPrice: "0",
+				maxPrice: "100000000000000000000000000000000000",
+				sortBy:   "foo",
+				orderBy:  "bar",
+			},
+			out: types.GetAdParams{
+				Page:     0,
+				MinPrice: 1,
+				MaxPrice: 1e6,
+				SortBy:   types.SORT_BY_DATE,
+				OrderBy:  types.ORDER_BY_ASC,
+			},
+		},
+		{
+			name: "bad types",
+			in: mockParams{
+				page:     "monke",
+				minPrice: "monke",
+				maxPrice: "monke",
+				sortBy:   "monke",
+				orderBy:  "monke",
+			},
+			out: types.GetAdParams{
+				Page:     0,
+				MinPrice: 1,
+				MaxPrice: 1e6,
+				SortBy:   types.SORT_BY_DATE,
+				OrderBy:  types.ORDER_BY_ASC,
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			req := httptest.NewRequest("GET", "/ads", nil)
+			req.SetPathValue("page", c.in.page)
+			req.SetPathValue("min_price", c.in.minPrice)
+			req.SetPathValue("max_price", c.in.maxPrice)
+			req.SetPathValue("sort_by", c.in.sortBy)
+			req.SetPathValue("order_by", c.in.orderBy)
+			rr := httptest.NewRecorder()
+			newGetAdsHanlder(m, valid)(rr, req)
+			assert.Equal(t, 200, rr.Code)
+			assert.Equal(t, c.out, outParams)
+		})
+	}
 }
