@@ -153,3 +153,76 @@ func newCreateAdHandler(d dependencies, valid *validator.Validate) func(w http.R
 		w.Write(payload)
 	}
 }
+
+func newGetAdsHanlder(d dependencies, _ *validator.Validate) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var params types.GetAdParams
+		if sortByStr := r.PathValue("sort_by"); sortByStr != string(types.SORT_BY_PRICE) {
+			params.SortBy = types.SORT_BY_DATE
+		} else {
+			params.SortBy = types.SORT_BY_PRICE
+		}
+		if orderByStr := r.PathValue("order_by"); orderByStr != string(types.ORDER_BY_DESC) {
+			params.OrderBy = types.ORDER_BY_ASC
+		} else {
+			params.OrderBy = types.ORDER_BY_DESC
+		}
+		maxPriceStr := r.PathValue("max_price")
+		if maxPrice, err := strconv.Atoi(maxPriceStr); err != nil {
+			params.MaxPrice = 1e6
+		} else {
+			if maxPrice < 1 {
+				maxPrice = 1
+			} else if maxPrice > 1e6 {
+				maxPrice = 1e6
+			}
+			params.MaxPrice = maxPrice
+		}
+		minPriceStr := r.PathValue("min_price")
+		if minPrice, err := strconv.Atoi(minPriceStr); err != nil {
+			params.MinPrice = 1
+		} else {
+			if minPrice < 1 {
+				minPrice = 1
+			} else if minPrice > 1e6 {
+				minPrice = 1e6
+			}
+			params.MinPrice = minPrice
+		}
+		pageStr := r.PathValue("page")
+		if page, err := strconv.Atoi(pageStr); err != nil {
+			params.Page = 0
+		} else {
+			if page < 0 {
+				page = 0
+			}
+			params.Page = page
+		}
+		userIdStr := r.Header.Get("userid")
+		var userId int
+		if userIdStr != "" {
+			var err error
+			userId, err = strconv.Atoi(userIdStr)
+			if err != nil {
+				log.Println("userid is not int, yet fell into handler")
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+		log.Println(userId, params)
+		feed, err := d.getAds(userId, params)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		payload, err := json.Marshal(feed)
+		if err != nil {
+			log.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(payload)
+	}
+}

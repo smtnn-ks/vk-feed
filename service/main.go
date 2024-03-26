@@ -24,5 +24,5 @@ func Register(conn db.DBConnection, jwtSecret []byte) {
 	http.HandleFunc("POST /signup", newSignupHandler(d, valid))
 	http.HandleFunc("POST /signin", newSigninHandler(d, valid))
 	http.HandleFunc("POST /ads", authMiddleware(d, newCreateAdHandler(d, valid), false))
-	// http.HandleFunc("GET /ads", func(w http.ResponseWriter, r *http.Request) {})
+	http.HandleFunc("GET /ads", authMiddleware(d, newGetAdsHanlder(d, valid), true))
 }

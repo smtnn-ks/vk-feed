@@ -66,3 +66,8 @@ func (d deps) createAd(dto types.AdDto, userId int) (types.Ad, error) {
 	}
 	return out, nil
 }
+
+func (d deps) getAds(userId int, params types.GetAdParams) (res []types.AdFeed, err error) {
+	res, err = d.client.GetAds(userId, params)
+	return
+}
