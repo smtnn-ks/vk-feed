@@ -101,8 +101,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/adsFeed"
-        400:
-          description: Filters error
 
 security:
   - bearerAuth: []
