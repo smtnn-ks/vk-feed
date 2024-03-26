@@ -126,6 +126,15 @@ func TestNewSignupHandler(t *testing.T) {
 		newSignupHandler(m, valid)(rr, req)
 		assert.Equal(t, 400, rr.Code)
 	})
+	t.Run("wrong types", func(t *testing.T) {
+		req := newRequest("POST", "/signup", struct {
+			Name     int `json:"name"`
+			Password int `json:"password"`
+		}{1234, 1234})
+		rr := httptest.NewRecorder()
+		newSignupHandler(m, valid)(rr, req)
+		assert.Equal(t, 400, rr.Code)
+	})
 }
 
 func TestNewSigninHandler(t *testing.T) {
@@ -179,6 +188,15 @@ func TestNewSigninHandler(t *testing.T) {
 		newSigninHandler(m, valid)(rr, req)
 		assert.Equal(t, 400, rr.Code)
 	})
+	t.Run("wrong types", func(t *testing.T) {
+		req := newRequest("POST", "/signin", struct {
+			Name     int `json:"name"`
+			Password int `json:"password"`
+		}{1234, 1234})
+		rr := httptest.NewRecorder()
+		newSigninHandler(m, valid)(rr, req)
+		assert.Equal(t, 400, rr.Code)
+	})
 	t.Run("user not found", func(t *testing.T) {
 		req := newRequest("POST", "/signin", types.SignDto{Name: "wrong_name", Password: "mock_password"})
 		rr := httptest.NewRecorder()
@@ -220,6 +238,19 @@ func TestNewCreateAdHandler(t *testing.T) {
 	})
 	t.Run("No body provided", func(t *testing.T) {
 		req := httptest.NewRequest("POST", "/ads", nil)
+		req.Header.Add("userid", "1")
+		rr := httptest.NewRecorder()
+		newCreateAdHandler(m, valid)(rr, req)
+		assert.Equal(t, 400, rr.Code)
+	})
+	t.Run("wrong types", func(t *testing.T) {
+		req := newRequest("POST", "/ads", struct {
+			Id       string `json:"id"`
+			Title    int    `json:"title"`
+			Content  int    `json:"content"`
+			ImageUrl int    `json:"imageUrl"`
+			Price    string `json:"price"`
+		}{"1", 1, 1, 1, "1"})
 		req.Header.Add("userid", "1")
 		rr := httptest.NewRecorder()
 		newCreateAdHandler(m, valid)(rr, req)

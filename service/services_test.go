@@ -125,7 +125,6 @@ func TestCreateAd(t *testing.T) {
 		_, err := d.createAd(dto, 0)
 		assert.Equal(t, sql.ErrNoRows, err)
 	})
-	// TODO: 500 if body param's type is not correct
 }
 
 // getAds does not do much, no tests needed

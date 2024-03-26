@@ -26,6 +26,11 @@ func newSignupHandler(d dependencies, valid *validator.Validate) func(w http.Res
 		}
 		var dto types.SignDto
 		if err := json.Unmarshal(content, &dto); err != nil {
+			if typeError, ok := err.(*json.UnmarshalTypeError); ok {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(typeError.Error()))
+				return
+			}
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -66,6 +71,11 @@ func newSigninHandler(d dependencies, valid *validator.Validate) func(w http.Res
 		}
 		var dto types.SignDto
 		if err := json.Unmarshal(content, &dto); err != nil {
+			if typeError, ok := err.(*json.UnmarshalTypeError); ok {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(typeError.Error()))
+				return
+			}
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -111,6 +121,11 @@ func newCreateAdHandler(d dependencies, valid *validator.Validate) func(w http.R
 		}
 		var dto types.AdDto
 		if err := json.Unmarshal(content, &dto); err != nil {
+			if typeError, ok := err.(*json.UnmarshalTypeError); ok {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(typeError.Error()))
+				return
+			}
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
