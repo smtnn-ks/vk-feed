@@ -3,7 +3,7 @@ version: "3"
 services:
   db:
     image: postgres
-    ports: 
+    ports:
       - 5432:5432
     environment:
       POSTGRES_USERNAME: postgres
@@ -12,7 +12,8 @@ services:
     build: .
     ports: 
       - 8000:8000
+    restart: always
     environment:
       PORT: 8000
       DB_URL: postgres://postgres:example@db/postgres?sslmode=disable
-
+      JWT_SECRET: FYyZDmI4wXXSbz71yZaXfHxbBj1t84keiCfai6jZ6WcvJPoKqmenBcaJQPfMqQlMc0au98yBirq3p4oDSnXbcg==

@@ -1,0 +1,2 @@
+DROP TABLE usrs;
+DROP TABLE ads;
