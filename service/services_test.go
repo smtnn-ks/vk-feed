@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 	"crypto/sha512"
-	"database/sql"
 	"encoding/base64"
 	"testing"
 	"time"
 	imgC "vk-feed/image-checker"
 	"vk-feed/types"
 
+	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,13 +25,13 @@ func (m mockDBConnection) GetUserByName(name string) (int, string, error) {
 		hashPassword := base64.StdEncoding.EncodeToString(temp[:])
 		return 1, hashPassword, nil
 	} else {
-		return 0, "", sql.ErrNoRows
+		return 0, "", pgx.ErrNoRows
 	}
 }
 
 func (m mockDBConnection) CreateAd(dto types.AdDto, userId int) (id int, err error) {
 	if userId == 0 {
-		return 0, sql.ErrNoRows
+		return 0, pgx.ErrNoRows
 	} else {
 		return 1, nil
 	}
@@ -123,7 +123,7 @@ func TestCreateAd(t *testing.T) {
 			Price:    6969,
 		}
 		_, err := d.createAd(dto, 0)
-		assert.Equal(t, sql.ErrNoRows, err)
+		assert.Equal(t, pgx.ErrNoRows, err)
 	})
 }
 

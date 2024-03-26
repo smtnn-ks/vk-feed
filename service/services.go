@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 	"crypto/sha512"
-	"database/sql"
 	"encoding/base64"
 	"errors"
 	"time"
 	"vk-feed/types"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/jackc/pgx/v4"
 )
 
 var ErrWrongCreds error = errors.New("wrong credentials")
@@ -27,7 +27,7 @@ func (d deps) createUser(name, password string) (types.User, error) {
 func (d deps) signIn(name, password string) (types.Token, error) {
 	id, pass, err := d.client.GetUserByName(name)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return types.Token{}, ErrWrongCreds
 		}
 		return types.Token{}, err
