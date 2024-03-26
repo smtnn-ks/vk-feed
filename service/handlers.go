@@ -174,17 +174,18 @@ func newCreateAdHandler(d dependencies, valid *validator.Validate) func(w http.R
 func newGetAdsHanlder(d dependencies, _ *validator.Validate) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var params types.GetAdParams
-		if sortByStr := r.PathValue("sort_by"); sortByStr != string(types.SORT_BY_PRICE) {
+		q := r.URL.Query()
+		if sortByStr := q.Get("sort_by"); sortByStr != string(types.SORT_BY_PRICE) {
 			params.SortBy = types.SORT_BY_DATE
 		} else {
 			params.SortBy = types.SORT_BY_PRICE
 		}
-		if orderByStr := r.PathValue("order_by"); orderByStr != string(types.ORDER_BY_DESC) {
+		if orderByStr := q.Get("order_by"); orderByStr != string(types.ORDER_BY_DESC) {
 			params.OrderBy = types.ORDER_BY_ASC
 		} else {
 			params.OrderBy = types.ORDER_BY_DESC
 		}
-		maxPriceStr := r.PathValue("max_price")
+		maxPriceStr := q.Get("max_price")
 		if maxPrice, err := strconv.Atoi(maxPriceStr); err != nil {
 			params.MaxPrice = 1e6
 		} else {
@@ -195,7 +196,7 @@ func newGetAdsHanlder(d dependencies, _ *validator.Validate) func(w http.Respons
 			}
 			params.MaxPrice = maxPrice
 		}
-		minPriceStr := r.PathValue("min_price")
+		minPriceStr := q.Get("min_price")
 		if minPrice, err := strconv.Atoi(minPriceStr); err != nil {
 			params.MinPrice = 1
 		} else {
@@ -206,7 +207,7 @@ func newGetAdsHanlder(d dependencies, _ *validator.Validate) func(w http.Respons
 			}
 			params.MinPrice = minPrice
 		}
-		pageStr := r.PathValue("page")
+		pageStr := r.URL.Query().Get("page")
 		if page, err := strconv.Atoi(pageStr); err != nil {
 			params.Page = 0
 		} else {

@@ -2,10 +2,11 @@ package service
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"vk-feed/types"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v4"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,7 +36,7 @@ func (m mockDeps) createAd(dto types.AdDto, userId int) (types.Ad, error) {
 	if dto.ImageUrl != "http://mocksite.com/image.jpg" {
 		return types.Ad{}, imgC.ErrUrlUnavailable
 	} else if userId == 0 {
-		return types.Ad{}, sql.ErrNoRows
+		return types.Ad{}, pgx.ErrNoRows
 	} else {
 		return types.Ad{
 			Id:       1,
@@ -468,12 +470,19 @@ func TestNewGetAdsHandler(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			req := httptest.NewRequest("GET", "/ads", nil)
-			req.SetPathValue("page", c.in.page)
-			req.SetPathValue("min_price", c.in.minPrice)
-			req.SetPathValue("max_price", c.in.maxPrice)
-			req.SetPathValue("sort_by", c.in.sortBy)
-			req.SetPathValue("order_by", c.in.orderBy)
+			baseUrl := "http://localhost:8000"
+			resource := "/ads"
+			params := url.Values{}
+			params.Add("page", c.in.page)
+			params.Add("min_price", c.in.minPrice)
+			params.Add("max_price", c.in.maxPrice)
+			params.Add("sort_by", c.in.sortBy)
+			params.Add("order_by", c.in.orderBy)
+			u, _ := url.ParseRequestURI(baseUrl)
+			u.Path = resource
+			u.RawQuery = params.Encode()
+			urlStr := fmt.Sprint(u)
+			req := httptest.NewRequest("GET", urlStr, nil)
 			rr := httptest.NewRecorder()
 			newGetAdsHanlder(m, valid)(rr, req)
 			assert.Equal(t, 200, rr.Code)
