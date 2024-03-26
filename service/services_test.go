@@ -58,7 +58,7 @@ func (m mockIC) Check(ctx context.Context, url string) error {
 	if url == "OK" {
 		return nil
 	} else {
-		return imgC.ErrBadImage
+		return imgC.ErrUrlUnavailable
 	}
 }
 
@@ -113,7 +113,7 @@ func TestCreateAd(t *testing.T) {
 			Price:    6969,
 		}
 		_, err := d.createAd(dto, 1)
-		assert.Equal(t, imgC.ErrBadImage, err)
+		assert.Equal(t, imgC.ErrUrlUnavailable, err)
 	})
 	t.Run("Bad user ID", func(t *testing.T) {
 		dto := types.AdDto{

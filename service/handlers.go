@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"slices"
 	"strconv"
 	imgC "vk-feed/image-checker"
 	"vk-feed/types"
@@ -149,9 +150,9 @@ func newCreateAdHandler(d dependencies, valid *validator.Validate) func(w http.R
 		}
 		ad, err := d.createAd(dto, userId)
 		if err != nil {
-			if err == imgC.ErrBadImage {
+			if slices.Contains([]error{imgC.ErrNotImage, imgC.ErrUrlUnavailable, imgC.ErrImageTooBig}, err) {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("something wrong with the image"))
+				w.Write([]byte(err.Error()))
 				return
 			}
 			log.Println(err)

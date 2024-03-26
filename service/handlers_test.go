@@ -32,7 +32,7 @@ func (m mockDeps) signIn(name, password string) (types.Token, error) {
 
 func (m mockDeps) createAd(dto types.AdDto, userId int) (types.Ad, error) {
 	if dto.ImageUrl != "http://mocksite.com/image.jpg" {
-		return types.Ad{}, imgC.ErrBadImage
+		return types.Ad{}, imgC.ErrUrlUnavailable
 	} else if userId == 0 {
 		return types.Ad{}, sql.ErrNoRows
 	} else {
