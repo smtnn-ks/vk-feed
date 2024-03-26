@@ -11,8 +11,9 @@ create table ads (
     title varchar(255) not null,
     content text not null, 
     image_url text,
-    price int,
+    price int not null,
     user_id int references usrs (id) on delete cascade,
+    created_at timestamp not null default now()::timestamp,
 
     check(length(title) >= 2),
     check(length(content) >= 2),
