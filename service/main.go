@@ -21,8 +21,26 @@ func Register(conn db.DBConnection, jwtSecret []byte) {
 		ic:        imgC.IC{},
 	}
 	valid := validator.New()
-	http.HandleFunc("POST /signup", newSignupHandler(d, valid))
-	http.HandleFunc("POST /signin", newSigninHandler(d, valid))
-	http.HandleFunc("POST /ads", authMiddleware(d, newCreateAdHandler(d, valid), false))
-	http.HandleFunc("GET /ads", authMiddleware(d, newGetAdsHanlder(d, valid), true))
+	http.HandleFunc("POST /signup",
+		loggerMiddleware(
+			newSignupHandler(d, valid),
+		))
+
+	http.HandleFunc("POST /signin",
+		loggerMiddleware(
+			newSigninHandler(d, valid),
+		))
+
+	http.HandleFunc("POST /ads",
+		loggerMiddleware(
+			authMiddleware(d,
+				newCreateAdHandler(d, valid),
+				false)),
+	)
+	http.HandleFunc("GET /ads",
+		loggerMiddleware(
+			authMiddleware(d,
+				newGetAdsHanlder(d, valid),
+				true)),
+	)
 }

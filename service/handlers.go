@@ -3,12 +3,13 @@ package service
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"slices"
 	"strconv"
 	imgC "vk-feed/image-checker"
 	"vk-feed/types"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -21,7 +22,7 @@ func newSignupHandler(d dependencies, valid *validator.Validate) func(w http.Res
 		}
 		content, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -32,7 +33,7 @@ func newSignupHandler(d dependencies, valid *validator.Validate) func(w http.Res
 				w.Write([]byte(typeError.Error()))
 				return
 			}
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -43,13 +44,13 @@ func newSignupHandler(d dependencies, valid *validator.Validate) func(w http.Res
 		}
 		user, err := d.createUser(dto.Name, dto.Password)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		payload, err := json.Marshal(user)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -66,7 +67,7 @@ func newSigninHandler(d dependencies, valid *validator.Validate) func(w http.Res
 		}
 		content, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -77,7 +78,7 @@ func newSigninHandler(d dependencies, valid *validator.Validate) func(w http.Res
 				w.Write([]byte(typeError.Error()))
 				return
 			}
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -92,13 +93,13 @@ func newSigninHandler(d dependencies, valid *validator.Validate) func(w http.Res
 				w.WriteHeader(http.StatusNotFound)
 				return
 			}
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		payload, err := json.Marshal(token)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -110,13 +111,13 @@ func newSigninHandler(d dependencies, valid *validator.Validate) func(w http.Res
 func newCreateAdHandler(d dependencies, valid *validator.Validate) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.ContentLength == 0 {
-			log.Println("Content-Length is 0")
+			log.Error("Content-Length is 0")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		content, err := io.ReadAll(r.Body)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -127,7 +128,7 @@ func newCreateAdHandler(d dependencies, valid *validator.Validate) func(w http.R
 				w.Write([]byte(typeError.Error()))
 				return
 			}
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -138,13 +139,13 @@ func newCreateAdHandler(d dependencies, valid *validator.Validate) func(w http.R
 		}
 		userIdString := r.Header.Get("userid")
 		if userIdString == "" {
-			log.Println("UserId is not provided, yet fell into handler")
+			log.Error("UserId is not provided, yet fell into handler")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		userId, err := strconv.Atoi(userIdString)
 		if err != nil {
-			log.Println("userId is not of type int, yet fell into handler")
+			log.Error("userId is not of type int, yet fell into handler")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -155,13 +156,13 @@ func newCreateAdHandler(d dependencies, valid *validator.Validate) func(w http.R
 				w.Write([]byte(err.Error()))
 				return
 			}
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		payload, err := json.Marshal(ad)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -220,21 +221,20 @@ func newGetAdsHanlder(d dependencies, _ *validator.Validate) func(w http.Respons
 			var err error
 			userId, err = strconv.Atoi(userIdStr)
 			if err != nil {
-				log.Println("userid is not int, yet fell into handler")
+				log.Error("userid is not int, yet fell into handler")
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 		}
-		log.Println(userId, params)
 		feed, err := d.getAds(userId, params)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		payload, err := json.Marshal(feed)
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

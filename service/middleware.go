@@ -1,11 +1,14 @@
 package service
 
 import (
+	"bytes"
 	"fmt"
-	"log"
+	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -45,7 +48,7 @@ func authMiddleware(d deps, next func(w http.ResponseWriter, r *http.Request), i
 			return []byte(d.jwtSecret), nil
 		}, jwt.WithExpirationRequired())
 		if err != nil {
-			log.Println(err)
+			log.Error(err)
 			if isOpt {
 				next(w, r)
 				return
@@ -74,6 +77,24 @@ func authMiddleware(d deps, next func(w http.ResponseWriter, r *http.Request), i
 			return
 		}
 		r.Header.Add("userid", fmt.Sprint(userId))
+		next(w, r)
+	}
+}
+
+func loggerMiddleware(next func(w http.ResponseWriter, r *http.Request)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var b bytes.Buffer
+		tee := io.TeeReader(r.Body, &b)
+		rBody, err := io.ReadAll(tee)
+		copiedBody := io.NopCloser(&b)
+		r.Body = copiedBody
+		r.ContentLength = int64(b.Len())
+		if err != nil {
+			log.Warn(err)
+		}
+		log.WithFields(log.Fields{
+			"body": string(rBody),
+		}).Info(fmt.Sprintf("%s %s", r.Method, r.URL.String()))
 		next(w, r)
 	}
 }
